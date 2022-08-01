@@ -8,8 +8,8 @@ fn main() {
     for stream in listener.incoming() {
         let request = Request::new(stream.unwrap());
 
-        println!("{}", request.method);
-        println!("{}", request.route);
-        println!("{}", request.content);
+        println!("{}", request.uri.method);
+        println!("{}", request.uri.route);
+        println!("{}", request.body.content);
     }
 }

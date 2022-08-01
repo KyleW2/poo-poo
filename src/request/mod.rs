@@ -21,16 +21,28 @@ impl std::fmt::Display for Method {
     }
 }
 
-pub struct Request {
+pub struct URI {
     pub method: Method,
     pub route: String,
     pub protocol: String,
+}
+
+pub struct Header {
     pub host: String,
     pub agent: String,
     pub accept: String,
+}
+
+pub struct Body {
     pub content_type: String,
     pub content_length: i32,
     pub content: String,
+}
+
+pub struct Request {
+    pub uri: URI,
+    pub header: Header,
+    pub body: Body,
 }
 
 impl Request {
@@ -90,15 +102,9 @@ impl Request {
         }
 
         return Self {
-            method: method,
-            route: route,
-            protocol: protocol,
-            host: host,
-            agent: agent,
-            accept: accept,
-            content_type: content_type,
-            content_length: content_length,
-            content: content,
+            uri: URI { method: method, route: route, protocol: protocol },
+            header: Header { host: host, agent: agent, accept: accept },
+            body: Body { content_type: content_type, content_length: content_length, content: content },
         }
     }
 }
