@@ -9,7 +9,7 @@ pub fn invalid_route() -> Response {
         },
         body: Body {
             content_type: "HTML\n".to_string(),
-            content: "<h1> 404 Not found</h1><p>Bad gateway.<p>".to_string(),
+            content: "<h1>404 Not found</h1><p>Bad gateway.<p>".to_string(),
         },
     }
 }
