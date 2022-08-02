@@ -27,16 +27,34 @@ pub struct URI {
     pub protocol: String,
 }
 
+impl std::fmt::Display for URI {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Method: {}\nRoute: {}\nProtocol: {}", self.method, self.route, self.protocol)
+    }
+}
+
 pub struct Header {
     pub host: String,
     pub agent: String,
     pub accept: String,
 }
 
+impl std::fmt::Display for Header {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Host: {}\nAgent: {}\nAccept: {}", self.host, self.agent, self.accept)
+    }
+}
+
 pub struct Body {
     pub content_type: String,
     pub content_length: i32,
     pub content: String,
+}
+
+impl std::fmt::Display for Body {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Content-Type: {}\nContent-Length: {}\nContent:\n{}", self.content_type, self.content_length, self.content)
+    }
 }
 
 pub struct Request {
@@ -106,5 +124,11 @@ impl Request {
             header: Header { host: host, agent: agent, accept: accept },
             body: Body { content_type: content_type, content_length: content_length, content: content },
         }
+    }
+}
+
+impl std::fmt::Display for Request {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "URI:\n{}\n\nHeader:\n{}\n\nBody:\n{}\n", self.uri, self.header, self.body)
     }
 }
