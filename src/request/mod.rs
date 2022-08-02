@@ -53,7 +53,7 @@ pub struct Body {
 
 impl std::fmt::Display for Body {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Content-Type: {}\nContent-Length: {}\nContent:\n{}", self.content_type, self.content_length, self.content)
+        write!(f, "Content-Type: {}\nContent-Length: {},\nContent:\n{}", self.content_type, self.content_length, self.content)
     }
 }
 
@@ -64,7 +64,7 @@ pub struct Request {
 }
 
 impl Request {
-    pub fn new(mut stream: TcpStream) -> Self {
+    pub fn new(mut stream: &TcpStream) -> Self {
         // Make vars
         let method: Method;
         let route: String;
