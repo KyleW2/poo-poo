@@ -16,14 +16,13 @@ fn main() {
         // Create request from stream
         let request = Request::new(&stream);
 
+        // Log it
         logger.log(&request);
 
         // Route
         let response = match request.uri.route {
             _ => routes::invalid_route(),
         };
-
-        println!("{}", response.display());
 
         // Send response
         stream.write(response.display().as_bytes()).unwrap();

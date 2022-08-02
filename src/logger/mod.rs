@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use std::time::Instant;
+use std::time::SystemTime;
 
 use super::request::Request;
 
@@ -16,7 +16,7 @@ impl Logger {
 
     pub fn log(&self, request: &Request) {
         // Create Path and Display
-        let file_name: String = self.write_path.clone() + &Instant::now().elapsed().as_millis().to_string() + ".log";
+        let file_name: String = self.write_path.clone() + &SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs().to_string() + ".log";
         let path = Path::new(&file_name);
         let display = path.display();
 
