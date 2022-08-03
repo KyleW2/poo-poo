@@ -3,11 +3,14 @@ use std::io::prelude::*;
 
 use web_spooder::request::Request;
 use web_spooder::logger::Logger;
-use web_spooder::routes;
+use web_spooder::router::Router;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:6969").unwrap();
     let logger: Logger = Logger::new("logs/".to_string());
+    let router: Router = Router::new();
+
+    // Create router
 
     for stream in listener.incoming() {
         // Unwrap stream
@@ -19,10 +22,8 @@ fn main() {
         // Log it
         logger.log(&request);
 
-        // Route
-        let response = match request.uri.route {
-            _ => routes::invalid_route(),
-        };
+        // Route via router
+        let response = router.respond(&request);
 
         // Send response
         stream.write(response.display().as_bytes()).unwrap();
