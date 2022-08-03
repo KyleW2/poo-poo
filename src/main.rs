@@ -1,45 +1,39 @@
-use std::net::TcpListener;
-use std::io::prelude::*;
+use web_spooder::*;
 
-use web_spooder::request::Request;
-use web_spooder::logger::Logger;
-use web_spooder::router::Router;
-use web_spooder::response::{Response, status, Body};
-
-fn api(request: &mut Request) -> Response {
-    fn root(_request: &mut Request) -> Response {
-        return Response {
-            status: status(200),
-            body: Body {
+fn api(request: &mut request::Request) -> response::Response {
+    fn root(_request: &mut request::Request) -> response::Response {
+        return response::Response {
+            status: response::status(200),
+            body: response::Body {
                 content_type: "HTML\n".to_string(),
-                content: "<p>Welcome to the API!</p>".to_string(),
+                content: "<p>Welcome to the a!</p>".to_string(),
             },
         }
     }
 
-    fn poo(_request: &mut Request) -> Response {
-        return Response {
-            status: status(200),
-            body: Body {
+    fn b(_request: &mut request::Request) -> response::Response {
+        return response::Response {
+            status: response::status(200),
+            body: response::Body {
                 content_type: "HTML\n".to_string(),
-                content: "<p>Welcome to the Poo!</p>".to_string(),
+                content: "<p>Welcome to the c!</p>".to_string(),
             },
         }
     }
 
-    fn pee(_request: &mut Request) -> Response {
-        return Response {
-            status: status(200),
-            body: Body {
+    fn c(_request: &mut request::Request) -> response::Response {
+        return response::Response {
+            status: response::status(200),
+            body: response::Body {
                 content_type: "HTML\n".to_string(),
-                content: "<p>Welcome to the Pee!</p>".to_string(),
+                content: "<p>Welcome to the b!</p>".to_string(),
             },
         }
     }
 
-    let mut router: Router = Router::new();
-    router.add("poo".to_string(), poo);
-    router.add("pee".to_string(), pee);
+    let mut router: router::Router = router::Router::new();
+    router.add("b".to_string(), b);
+    router.add("c".to_string(), c);
     router.add("".to_string(), root);
 
     return router.respond(request)
@@ -47,32 +41,10 @@ fn api(request: &mut Request) -> Response {
 }
 
 fn main() {
-    let listener = TcpListener::bind("127.0.0.1:6969").unwrap();
-    let logger: Logger = Logger::new("logs/".to_string());
+    let mut router: router::Router = router::Router::new();
+    router.add("a".to_string(), api);
 
-    let mut router: Router = Router::new();
-    router.add("api".to_string(), api);
+    let app: app::App = app::App::new(router);
 
-    // Create router
-
-    for stream in listener.incoming() {
-        // Unwrap stream
-        let mut stream = stream.unwrap();
-
-        // Create request from stream
-        let mut request = Request::new(&stream);
-        request.uri.next();
-
-        // Log it
-        logger.log(&request);
-
-        // Route via router
-        let response = router.respond(&mut request);
-
-        println!("{} {} {} {} {}", request.ip, request.uri.method, request.uri.route, response.status.code, response.status.text);
-
-        // Send response
-        stream.write(response.display().as_bytes()).unwrap();
-        stream.flush().unwrap();
-    }
+    app.run();
 }
