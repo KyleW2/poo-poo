@@ -3,7 +3,7 @@ use super::request::Request;
 
 pub struct Route {
     pub route: String,
-    pub function: fn(&Request) -> Response,
+    pub function: fn(&mut Request) -> Response,
 }
 
 pub struct Router {
@@ -15,13 +15,19 @@ impl Router {
         return Router { table: Vec::new() }
     }
 
-    pub fn add(&mut self, route: String, function: fn(&Request) -> Response) {
+    pub fn add(&mut self, route: String, function: fn(&mut Request) -> Response) {
         self.table.push(Route { route: route, function: function});
     }
 
-    pub fn respond(&self, request: &Request) -> Response {
+    pub fn respond(&self, request: &mut Request) -> Response {
+        if request.uri.route_split.len() <= 0 {
+            return invalid_route();
+        }
+
         for i in 0..self.table.len() {
-            if self.table[i].route == request.uri.route {
+            if self.table[i].route == request.uri.route_split[0] {
+                request.uri.next();
+
                 return (self.table[i].function)(request)
             }
         }

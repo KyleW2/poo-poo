@@ -1,5 +1,5 @@
 use std::io::prelude::*;
-use std::net::TcpStream;
+use std::net::{TcpStream, SocketAddr};
 
 pub enum Method {
     GET,
@@ -24,7 +24,14 @@ impl std::fmt::Display for Method {
 pub struct URI {
     pub method: Method,
     pub route: String,
+    pub route_split: Vec<String>,
     pub protocol: String,
+}
+
+impl URI {
+    pub fn next(&mut self) {
+        self.route_split.remove(0);
+    }
 }
 
 impl std::fmt::Display for URI {
@@ -58,6 +65,7 @@ impl std::fmt::Display for Body {
 }
 
 pub struct Request {
+    pub ip: SocketAddr,
     pub uri: URI,
     pub header: Header,
     pub body: Body,
@@ -68,6 +76,7 @@ impl Request {
         // Make vars
         let method: Method;
         let route: String;
+        let mut route_split: Vec<String> = Vec::new();
         let protocol: String;
         let mut host: String = String::new();
         let mut agent: String = String::new();
@@ -100,6 +109,14 @@ impl Request {
         };
 
         route = current_split[1].to_string();
+
+        let mut temp_route_split: Vec<&str> = route.split("/").collect();
+        temp_route_split.push("/");
+
+        for i in 0..temp_route_split.len() {
+            route_split.push(temp_route_split[i].to_string())
+        }
+
         protocol = current_split[2].to_string();
 
         // Parse rest
@@ -120,7 +137,8 @@ impl Request {
         }
 
         return Self {
-            uri: URI { method: method, route: route, protocol: protocol },
+            ip: stream.peer_addr().unwrap(),
+            uri: URI { method: method, route: route, route_split: route_split, protocol: protocol },
             header: Header { host: host, agent: agent, accept: accept },
             body: Body { content_type: content_type, content_length: content_length, content: content },
         }
