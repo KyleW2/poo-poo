@@ -4,16 +4,12 @@ use std::io::prelude::*;
 use web_spooder::request::Request;
 use web_spooder::logger::Logger;
 use web_spooder::router::Router;
-use web_spooder::response::{Response, Status, Body};
+use web_spooder::response::{Response, status, Body};
 
 fn api(request: &mut Request) -> Response {
     fn root(_request: &mut Request) -> Response {
         return Response {
-            status: Status {
-                version: "HTTP/1.1".to_string(),
-                code: 200,
-                text: "Ok".to_string(),
-            },
+            status: status(200),
             body: Body {
                 content_type: "HTML\n".to_string(),
                 content: "<p>Welcome to the API!</p>".to_string(),
@@ -23,11 +19,7 @@ fn api(request: &mut Request) -> Response {
 
     fn poo(_request: &mut Request) -> Response {
         return Response {
-            status: Status {
-                version: "HTTP/1.1".to_string(),
-                code: 200,
-                text: "Ok".to_string(),
-            },
+            status: status(200),
             body: Body {
                 content_type: "HTML\n".to_string(),
                 content: "<p>Welcome to the Poo!</p>".to_string(),
@@ -37,11 +29,7 @@ fn api(request: &mut Request) -> Response {
 
     fn pee(_request: &mut Request) -> Response {
         return Response {
-            status: Status {
-                version: "HTTP/1.1".to_string(),
-                code: 200,
-                text: "Ok".to_string(),
-            },
+            status: status(200),
             body: Body {
                 content_type: "HTML\n".to_string(),
                 content: "<p>Welcome to the Pee!</p>".to_string(),
