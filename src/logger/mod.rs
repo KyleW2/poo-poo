@@ -1,3 +1,4 @@
+use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
@@ -11,6 +12,10 @@ pub struct Logger {
 
 impl Logger {
     pub fn new(write_path: String) -> Self {
+        if !Path::new("logs/").exists() {
+            let _ = fs::create_dir("logs/");
+        }
+        
         return Self { write_path: write_path }
     }
 
