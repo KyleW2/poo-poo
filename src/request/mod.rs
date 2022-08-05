@@ -44,8 +44,16 @@ impl URL {
         return false;
     }
 
-    pub fn get_current(&self) -> String {
-        return self.url[self.pointer];
+    pub fn has_next(&self) -> bool {
+        if self.pointer <= self.url.len() - 1 {
+            return true;
+        }
+
+        return false;
+    }
+
+    pub fn get_current(&self) -> &String {
+        return &self.url[self.pointer];
     }
 }
 
@@ -75,7 +83,9 @@ impl Line {
         let url: URL;
         let protocol: String;
 
-        let split: Vec<&str> = s.split(" ").collect();
+        let mut split: Vec<&str> = s.split(" ").collect();
+
+        println!("{:?}", split);
 
         // Match request method
         method = match split.remove(0) {
@@ -87,9 +97,9 @@ impl Line {
         };
 
         let temp_url_string = split.remove(0);
-        let url_vec = Vec::new();
+        let mut url_vec = Vec::new();
 
-        let mut temp_url_split: Vec<&str> = temp_url_string.split("/").collect();
+        let temp_url_split: Vec<&str> = temp_url_string.split("/").collect();
 
         for i in 0..temp_url_split.len() {
             if temp_url_split[i] != "" && temp_url_split[i] != "" {
@@ -97,7 +107,7 @@ impl Line {
             }
         }
 
-        let url: URL = URL::new(url_vec);
+        url = URL::new(url_vec);
 
         protocol = split.remove(0).to_string();
 
@@ -144,6 +154,23 @@ pub struct Request {
 
 impl Request {
     pub fn new(mut stream: &TcpStream) -> Self {
+        // Read into buffer
+        let mut buffer = [0; 1024];
+        stream.read(&mut buffer).unwrap();
+
+        // Block empty requests
+        if is_zero(&buffer) {
+            return Self {
+                ip: stream.peer_addr().unwrap(),
+                line: Line { method: Method::INVALID, url: URL::new(vec![]), protocol: "".to_string() },
+                header: Header { host: "".to_string(), agent: "".to_string(), accept: "".to_string() },
+                body: Body { content_type: "".to_string(), content_length: 0, content: "".to_string() }
+            }
+        }
+
+        // Create String
+        let stream_as_string = String::from_utf8_lossy(&buffer[..]);
+
         // Make vars
         let mut host: String = String::new();
         let mut agent: String = String::new();
@@ -152,12 +179,7 @@ impl Request {
         let mut content_length: i32 = -1;
         let mut content: String = String::new();
 
-        // Read into buffer
-        let mut buffer = [0; 1024];
-        stream.read(&mut buffer).unwrap();
-
-        // Create String
-        let stream_as_string = String::from_utf8_lossy(&buffer[..]);
+        
 
         // Split String
         let mut v: Vec<&str> = stream_as_string.split("\n").collect();
@@ -197,4 +219,12 @@ impl std::fmt::Display for Request {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "Request Line:\n{}\n\nHeader:\n{}\n\nBody:\n{}\n", self.line, self.header, self.body)
     }
+}
+
+fn is_zero(buf: &[u8]) -> bool {
+    let (prefix, aligned, suffix) = unsafe { buf.align_to::<u128>() };
+
+    prefix.iter().all(|&x| x == 0)
+        && suffix.iter().all(|&x| x == 0)
+        && aligned.iter().all(|&x| x == 0)
 }
