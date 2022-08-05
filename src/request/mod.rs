@@ -21,22 +21,93 @@ impl std::fmt::Display for Method {
     }
 }
 
-pub struct URI {
-    pub method: Method,
-    pub route: String,
-    pub route_split: Vec<String>,
-    pub protocol: String,
+pub struct URL {
+    url: Vec<String>,
+    pointer: usize,
 }
 
-impl URI {
-    pub fn next(&mut self) {
-        self.route_split.remove(0);
+impl URL {
+    pub fn new(url: Vec<String>) -> Self {
+        return Self { url: url, pointer: 0 }
+    }
+    pub fn len(&self) -> usize {
+        return self.url.len()
+    }
+
+    pub fn next(&mut self) -> bool {
+        self.pointer += 1;
+
+        if self.pointer <= self.url.len() - 1 {
+            return true;
+        }
+
+        return false;
+    }
+
+    pub fn get_current(&self) -> String {
+        return self.url[self.pointer];
     }
 }
 
-impl std::fmt::Display for URI {
+impl std::ops::Index<usize> for URL {
+    type Output = String;
+
+    fn index(&self, i: usize) -> &Self::Output {
+        return &self.url[i];
+    }
+}
+
+impl std::fmt::Display for URL {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Method: {}\nRoute: {}\nProtocol: {}", self.method, self.route, self.protocol)
+        write!(f, "{:?}", self.url)
+    }
+}
+
+pub struct Line {
+    pub method: Method,
+    pub url: URL,
+    pub protocol: String,
+}
+
+impl Line {
+    pub fn from_string(s: String) -> Self {
+        let method: Method;
+        let url: URL;
+        let protocol: String;
+
+        let split: Vec<&str> = s.split(" ").collect();
+
+        // Match request method
+        method = match split.remove(0) {
+            "GET" => Method::GET,
+            "POST" => Method::POST,
+            "PUT" => Method::PUT,
+            "DELETE" => Method::DELETE,
+            _ => Method::INVALID,
+        };
+
+        let temp_url_string = split.remove(0);
+        let url_vec = Vec::new();
+
+        let mut temp_url_split: Vec<&str> = temp_url_string.split("/").collect();
+
+        for i in 0..temp_url_split.len() {
+            if temp_url_split[i] != "" && temp_url_split[i] != "" {
+                url_vec.push(temp_url_split[i].to_string())
+            }
+        }
+
+        let url: URL = URL::new(url_vec);
+
+        protocol = split.remove(0).to_string();
+
+        return Line { method: method, url: url, protocol: protocol }
+    }
+}
+
+impl std::fmt::Display for Line {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Method: {}\nRoute: {}\nProtocol: {}", self.method, self.url, self.protocol)
     }
 }
 
@@ -66,7 +137,7 @@ impl std::fmt::Display for Body {
 
 pub struct Request {
     pub ip: SocketAddr,
-    pub uri: URI,
+    pub line: Line,
     pub header: Header,
     pub body: Body,
 }
@@ -74,10 +145,6 @@ pub struct Request {
 impl Request {
     pub fn new(mut stream: &TcpStream) -> Self {
         // Make vars
-        let method: Method;
-        let route: String;
-        let mut route_split: Vec<String> = Vec::new();
-        let protocol: String;
         let mut host: String = String::new();
         let mut agent: String = String::new();
         let mut accept: String = String::new();
@@ -97,27 +164,8 @@ impl Request {
 
         // Parse the request line
         let current_string = v.remove(0).to_string();
-        let current_split: Vec<&str> = current_string.split(" ").collect();
-
-        // Match request method
-        method = match current_split[0] {
-            "GET" => Method::GET,
-            "POST" => Method::POST,
-            "PUT" => Method::PUT,
-            "DELETE" => Method::DELETE,
-            _ => Method::INVALID,
-        };
-
-        route = current_split[1].to_string();
-
-        let mut temp_route_split: Vec<&str> = route.split("/").collect();
-        temp_route_split.push("/");
-
-        for i in 0..temp_route_split.len() {
-            route_split.push(temp_route_split[i].to_string())
-        }
-
-        protocol = current_split[2].to_string();
+        
+        let line = Line::from_string(current_string);
 
         // Parse rest
         while v.len() > 0 {
@@ -138,7 +186,7 @@ impl Request {
 
         return Self {
             ip: stream.peer_addr().unwrap(),
-            uri: URI { method: method, route: route, route_split: route_split, protocol: protocol },
+            line: line,
             header: Header { host: host, agent: agent, accept: accept },
             body: Body { content_type: content_type, content_length: content_length, content: content },
         }
@@ -147,6 +195,6 @@ impl Request {
 
 impl std::fmt::Display for Request {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "URI:\n{}\n\nHeader:\n{}\n\nBody:\n{}\n", self.uri, self.header, self.body)
+        write!(f, "Request Line:\n{}\n\nHeader:\n{}\n\nBody:\n{}\n", self.line, self.header, self.body)
     }
 }
