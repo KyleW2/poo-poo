@@ -16,7 +16,7 @@ fn api(request: &mut request::Request) -> response::Response {
             status: response::status(200),
             body: response::Body {
                 content_type: "HTML\n".to_string(),
-                content: "<p>Welcome to the c!</p>".to_string(),
+                content: "<p>Welcome to the b!</p>".to_string(),
             },
         }
     }
@@ -26,23 +26,25 @@ fn api(request: &mut request::Request) -> response::Response {
             status: response::status(200),
             body: response::Body {
                 content_type: "HTML\n".to_string(),
-                content: "<p>Welcome to the b!</p>".to_string(),
+                content: "<p>Welcome to the c!</p>".to_string(),
             },
         }
     }
 
     let mut router: router::Router = router::Router::new();
-    router.add("b".to_string(), b);
-    router.add("c".to_string(), c);
-    router.add("".to_string(), root);
+    router.add(request::URL::new(vec!["b".to_string()]), b);
+    router.add(request::URL::new(vec!["c".to_string()]), c);
 
-    return router.respond(request)
+    if request.line.url.has_next() {
+        return router.respond(request)
+    }
 
+    return root(request)
 }
 
 fn main() {
     let mut router: router::Router = router::Router::new();
-    router.add("a".to_string(), api);
+    router.add(request::URL::new(vec!["a".to_string()]), api);
 
     let app: app::App = app::App::new(router);
 

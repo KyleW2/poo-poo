@@ -1,8 +1,8 @@
 use super::response::{Response, status, Body};
-use super::request::Request;
+use super::request::{Request, URL};
 
 pub struct Route {
-    pub route: String,
+    pub url: URL,
     pub function: fn(&mut Request) -> Response,
 }
 
@@ -15,18 +15,18 @@ impl Router {
         return Router { table: Vec::new() }
     }
 
-    pub fn add(&mut self, route: String, function: fn(&mut Request) -> Response) {
-        self.table.push(Route { route: route, function: function});
+    pub fn add(&mut self, url: URL, function: fn(&mut Request) -> Response) {
+        self.table.push(Route { url: url, function: function});
     }
 
     pub fn respond(&self, request: &mut Request) -> Response {
-        if request.uri.route_split.len() <= 0 {
+        if !request.line.url.has_next() {
             return invalid_route();
         }
 
         for i in 0..self.table.len() {
-            if self.table[i].route == request.uri.route_split[0] {
-                request.uri.next();
+            if self.table[i].url.get_current() == request.line.url.get_current() {
+                request.line.url.next();
 
                 return (self.table[i].function)(request)
             }
